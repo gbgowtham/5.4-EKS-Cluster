@@ -1,0 +1,33 @@
+# Create EKS Cluster
+
+eksctl create cluster --name=eks-cluster \
+                      --region=us-east-1 \
+                      --zones=us-east-1a,us-east-1b \
+                      --without-nodegroup
+                  
+eksctl utils associate-iam-oidc-provider \
+    --region us-east-1 \
+    --cluster eks-cluster \
+    --approve
+   
+eksctl create nodegroup --cluster=eks-cluster \
+                        --region=us-east-1 \
+                        --name=eks-cluster-ng-private \
+                        --node-type=t3.medium \
+                        --nodes-min=2 \
+                        --nodes-max=3 \
+                        --node-volume-size=20 \
+                        --managed \
+                        --asg-access \
+                        --external-dns-access \
+                        --full-ecr-access \
+                        --appmesh-access \
+                        --alb-ingress-access \
+                        --node-private-networking
+
+# Update ./kube/config file
+aws eks update-kubeconfig --name eks-cluster
+
+
+# Delete the EKS Cluster 
+eksctl delete cluster --name eks-cluster
